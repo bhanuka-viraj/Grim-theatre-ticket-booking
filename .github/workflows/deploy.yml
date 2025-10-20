@@ -24,9 +24,26 @@ jobs:
             # Navigate to your project directory
             cd /home/bhanuka/Grim-theatre-ticket-booking
 
-            # Pull the latest code from the main branch
-            echo "🚚 Pulling latest code..."
-            git pull origin main
+            # Check git status before pull
+            echo "📊 Checking git status..."
+            git status
+
+            # Reset any local changes (IMPORTANT!)
+            echo "🔄 Resetting local changes..."
+            git fetch origin
+            git reset --hard origin/main
+
+            # Verify we're on main branch
+            echo "🌿 Current branch:"
+            git branch --show-current
+
+            # Show latest commit
+            echo "📝 Latest commit:"
+            git log -1 --oneline
+
+            # Verify script file exists
+            echo "🔍 Checking for cleanup script..."
+            ls -la backend/scripts/cleanup-abandoned-tickets.js || echo "⚠️ Script file not found!"
 
             # Create the backend .env file from the GitHub Secret
             echo "🤫 Creating backend .env file..."
