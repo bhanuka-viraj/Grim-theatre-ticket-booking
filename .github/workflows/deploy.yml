@@ -19,49 +19,34 @@ jobs:
           host: ${{ secrets.DO_HOST }}
           username: ${{ secrets.DO_USERNAME }}
           key: ${{ secrets.DO_SSH_KEY }}
-          port: 22 # Default SSH port
-          script_stop: true
+          port: 22
           script: |
-            #!/bin/bash
-            
-            # Source bashrc to load PATH (for npm, node, pm2)
-            source ~/.bashrc || source ~/.bash_profile || true
-            
-            # Set PATH explicitly
-            export PATH=$HOME/.nvm/versions/node/$(node -v 2>/dev/null | sed 's/v//')/bin:$PATH
-            export PATH=$HOME/.npm-global/bin:/usr/local/bin:/usr/bin:/bin:$PATH
+            # Load NVM environment to get node/npm/pm2 in PATH
+            export NVM_DIR="$HOME/.nvm"
+            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
             
             # Navigate to your project directory
             cd /home/bhanuka/Grim-theatre-ticket-booking
 
-            # Check git status before pull
-            echo "📊 Checking git status..."
-            git status
+            # Verify environment
+            echo "🔍 Environment Check:"
+            echo "Node: $(node --version)"
+            echo "NPM: $(npm --version)"
+            echo "PM2: $(pm2 --version)"
 
             # Stash any local changes
             echo "💾 Stashing local changes..."
             git stash || true
 
-            # Reset any local changes (IMPORTANT!)
-            echo "🔄 Resetting to latest main..."
-            git fetch origin --depth=1
-            git reset --hard origin/main
-
-            # Verify we're on main branch
-            echo "🌿 Current branch:"
-            git branch --show-current
+            # Pull latest changes from GitHub
+            echo "🔄 Pulling latest changes..."
+            git pull origin main
 
             # Show latest commit
             echo "📝 Latest commit:"
             git log -1 --oneline
 
-            # Find npm and pm2 paths
-            echo "🔍 Finding npm and pm2..."
-            which npm || echo "npm not in PATH"
-            which pm2 || echo "pm2 not in PATH"
-            which node || echo "node not in PATH"
-
-            # Verify script file exists
+            # Verify cleanup script exists
             echo "🔍 Checking for cleanup script..."
             ls -la backend/scripts/cleanup-abandoned-tickets.js || echo "⚠️ Script file not found!"
 
@@ -74,6 +59,10 @@ jobs:
             cd backend
             npm install
 
+            # Build backend
+            echo "🔨 Building backend..."
+            npm run build
+
             # Install frontend dependencies and build for production
             echo "🎨 Building frontend..."
             cd ../frontend
@@ -83,6 +72,6 @@ jobs:
             # Restart the application with PM2
             echo "🚀 Restarting PM2 application..."
             cd ..
-            pm2 restart ticket-api
+            pm2 restart ticket-api || pm2 start backend/dist/index.js --name ticket-api
 
             echo "✅ Deployment complete!"
