@@ -1,49 +1,51 @@
-name: Deploy to Digital Ocean
+# .github/workflows/deploy.yml
+
+name: Deploy to DigitalOcean
 
 on:
   push:
     branches:
-      - main
-  workflow_dispatch:
+      - main # Deploys when you push to the main branch
+  workflow_dispatch: # Allows you to run this workflow manually from the Actions tab
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: "18"
-
-      - name: Deploy to Digital Ocean
+      - name: Deploy to Server via SSH
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.DO_HOST }}
           username: ${{ secrets.DO_USERNAME }}
           key: ${{ secrets.DO_SSH_KEY }}
-          port: ${{ secrets.DO_PORT }}
+          port: 22 # Default SSH port
           script: |
-            cd /var/www/ticket-booking
+            # Navigate to your project directory
+            cd /home/bhanuka/Grim-theatre-ticket-booking
 
-            # Pull latest code
+            # Pull the latest code from the main branch
+            echo "🚚 Pulling latest code..."
             git pull origin main
 
-            # Backend deployment
-            cd backend
-            npm install --production
-            npm run build || true
+            # Create the backend .env file from the GitHub Secret
+            echo "🤫 Creating backend .env file..."
+            echo "${{ secrets.DOT_ENV }}" > backend/.env
 
-            # Frontend deployment
+            # Install backend dependencies
+            echo "📦 Installing backend dependencies..."
+            cd backend
+            npm install
+
+            # Install frontend dependencies and build for production
+            echo "🎨 Building frontend..."
             cd ../frontend
             npm install
             npm run build
 
-            # Restart services
+            # Restart the application with PM2
+            echo "🚀 Restarting PM2 application..."
             cd ..
-            pm2 restart ecosystem.config.js
+            pm2 restart ticket-api
 
-            echo "✅ Deployment completed successfully!"
+            echo "✅ Deployment complete!"
