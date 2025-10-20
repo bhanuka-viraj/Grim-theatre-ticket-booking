@@ -20,7 +20,17 @@ jobs:
           username: ${{ secrets.DO_USERNAME }}
           key: ${{ secrets.DO_SSH_KEY }}
           port: 22 # Default SSH port
+          script_stop: true
           script: |
+            #!/bin/bash
+            
+            # Source bashrc to load PATH (for npm, node, pm2)
+            source ~/.bashrc || source ~/.bash_profile || true
+            
+            # Set PATH explicitly
+            export PATH=$HOME/.nvm/versions/node/$(node -v 2>/dev/null | sed 's/v//')/bin:$PATH
+            export PATH=$HOME/.npm-global/bin:/usr/local/bin:/usr/bin:/bin:$PATH
+            
             # Navigate to your project directory
             cd /home/bhanuka/Grim-theatre-ticket-booking
 
@@ -28,9 +38,13 @@ jobs:
             echo "📊 Checking git status..."
             git status
 
+            # Stash any local changes
+            echo "💾 Stashing local changes..."
+            git stash || true
+
             # Reset any local changes (IMPORTANT!)
-            echo "🔄 Resetting local changes..."
-            git fetch origin
+            echo "🔄 Resetting to latest main..."
+            git fetch origin --depth=1
             git reset --hard origin/main
 
             # Verify we're on main branch
@@ -40,6 +54,12 @@ jobs:
             # Show latest commit
             echo "📝 Latest commit:"
             git log -1 --oneline
+
+            # Find npm and pm2 paths
+            echo "🔍 Finding npm and pm2..."
+            which npm || echo "npm not in PATH"
+            which pm2 || echo "pm2 not in PATH"
+            which node || echo "node not in PATH"
 
             # Verify script file exists
             echo "🔍 Checking for cleanup script..."
