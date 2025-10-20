@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="IJSE Movie Night 2025 - Book your tickets now!" />
+    <title>IJSE Movie Night 2025 - Ticket Booking</title>
+    
+    <!-- PayHere Payment Gateway SDK -->
+    <!-- Load in head to ensure it's available before React renders -->
+    <script type="text/javascript" src="https://www.payhere.lk/lib/payhere.js"></script>
+  </head>
+  <body>
+    <div id="root"></div>
+    
+    <!-- PayHere Payment Gateway SDK -->
+    <!-- Same script for both sandbox and production - controlled by sandbox parameter -->
+    <script type="text/javascript" src="https://www.payhere.lk/lib/payhere.js"></script>
+    <script>
+      // Debug: Check if PayHere loaded
+      window.addEventListener('load', function() {
+        if (window.payhere) {
+          console.log('✅ PayHere SDK loaded successfully');
+        } else {
+          console.error('❌ PayHere SDK failed to load');
+        }
+      });
+    </script>
+    
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>
