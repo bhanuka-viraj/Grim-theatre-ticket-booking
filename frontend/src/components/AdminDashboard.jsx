@@ -78,7 +78,7 @@ function AdminDashboard() {
       if (response.success) {
         setScanResult({
           success: true,
-          message: `Ticket #${ticketNumber} redeemed successfully!`,
+          message: `Ticket #${ticketNumber} redeemed successfully!.`,
           ticket: response.data.ticket,
         });
 
