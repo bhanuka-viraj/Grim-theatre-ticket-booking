@@ -14,8 +14,8 @@ import { dirname, join } from "path";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-// Load environment variables
-dotenv.config({ path: join(__dirname, ".env") });
+// Load environment variables from backend folder (one level up from scripts)
+dotenv.config({ path: join(__dirname, "..", ".env") });
 
 const MONGODB_URI = process.env.MONGODB_URI;
 const CLEANUP_AGE_MINUTES = process.env.CLEANUP_AGE_MINUTES || 30; // Default 30 minutes
