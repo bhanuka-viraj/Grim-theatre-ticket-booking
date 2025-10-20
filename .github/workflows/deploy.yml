@@ -1,19 +1,18 @@
-# .github/workflows/deploy.yml
-
 name: Deploy to DigitalOcean
 
 on:
   push:
     branches:
-      - main # Deploys when you push to the main branch
-  workflow_dispatch: # Allows you to run this workflow manually from the Actions tab
+      - main
+  workflow_dispatch:
 
 jobs:
   deploy:
+    name: Deploy Application
     runs-on: ubuntu-latest
 
     steps:
-      - name: Deploy to Server via SSH
+      - name: Deploy to Production Server
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.DO_HOST }}
@@ -21,57 +20,39 @@ jobs:
           key: ${{ secrets.DO_SSH_KEY }}
           port: 22
           script: |
-            # Load NVM environment to get node/npm/pm2 in PATH
+            # Load NVM environment
             export NVM_DIR="$HOME/.nvm"
             [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-            
-            # Navigate to your project directory
-            cd /home/bhanuka/Grim-theatre-ticket-booking
 
-            # Verify environment
-            echo "🔍 Environment Check:"
-            echo "Node: $(node --version)"
-            echo "NPM: $(npm --version)"
-            echo "PM2: $(pm2 --version)"
+            # Navigate to project
+            cd ~/Grim-theatre-ticket-booking
 
-            # Stash any local changes
-            echo "💾 Stashing local changes..."
-            git stash || true
+            echo "🔍 Environment: Node $(node --version) | NPM $(npm --version) | PM2 $(pm2 --version)"
 
-            # Pull latest changes from GitHub
-            echo "🔄 Pulling latest changes..."
+            # Pull latest code
+            echo "� Pulling latest changes..."
+            git stash
             git pull origin main
+            echo "✓ Now at commit: $(git log -1 --oneline)"
 
-            # Show latest commit
-            echo "📝 Latest commit:"
-            git log -1 --oneline
-
-            # Verify cleanup script exists
-            echo "🔍 Checking for cleanup script..."
-            ls -la backend/scripts/cleanup-abandoned-tickets.js || echo "⚠️ Script file not found!"
-
-            # Create the backend .env file from the GitHub Secret
-            echo "🤫 Creating backend .env file..."
+            # Update backend .env
+            echo "🔐 Updating backend environment..."
             echo "${{ secrets.DOT_ENV }}" > backend/.env
 
             # Install backend dependencies
             echo "📦 Installing backend dependencies..."
             cd backend
-            npm install
+            npm install --quiet
 
-            # Build backend
-            echo "🔨 Building backend..."
-            npm run build
-
-            # Install frontend dependencies and build for production
+            # Install and build frontend
             echo "🎨 Building frontend..."
             cd ../frontend
-            npm install
+            npm install --quiet
             npm run build
 
-            # Restart the application with PM2
-            echo "🚀 Restarting PM2 application..."
+            # Restart API server
+            echo "🚀 Restarting API server..."
             cd ..
-            pm2 restart ticket-api || pm2 start backend/dist/index.js --name ticket-api
+            pm2 restart ticket-api || pm2 start backend/src/index.js --name ticket-api
 
-            echo "✅ Deployment complete!"
+            echo "✅ Deployment successful!"
